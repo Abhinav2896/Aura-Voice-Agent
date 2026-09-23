@@ -16,8 +16,9 @@ def get_supabase() -> Client:
 def get_supabase_anon() -> Client:
     global _supabase_anon_client
     if _supabase_anon_client is None:
+        key = settings.SUPABASE_ANON_KEY or settings.SUPABASE_SERVICE_ROLE_KEY
         _supabase_anon_client = create_client(
             supabase_url=settings.SUPABASE_URL,
-            supabase_key=settings.SUPABASE_ANON_KEY
+            supabase_key=key
         )
     return _supabase_anon_client
