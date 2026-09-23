@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <!-- Left Leg Gradient: Sky Cyan to Royal Blue -->
+    <linearGradient id="aura-left" x1="15%" y1="100%" x2="85%" y2="0%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="55%" stop-color="#0284C7" />
+      <stop offset="100%" stop-color="#2563EB" />
+    </linearGradient>
+
+    <!-- Right Leg Gradient: Royal Blue to Violet -->
+    <linearGradient id="aura-right" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#2563EB" />
+      <stop offset="45%" stop-color="#6366F1" />
+      <stop offset="100%" stop-color="#A855F7" />
+    </linearGradient>
+
+    <!-- Apex Overlay Fold -->
+    <linearGradient id="aura-apex" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#1D4ED8" stop-opacity="0.55" />
+      <stop offset="100%" stop-color="#1E1B4B" stop-opacity="0.1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Right Leg (Back) -->
+  <line x1="50" y1="19" x2="77" y2="78" stroke="url(#aura-right)" stroke-width="19" stroke-linecap="round" />
+
+  <!-- Left Leg (Front) -->
+  <line x1="23" y1="78" x2="50" y2="19" stroke="url(#aura-left)" stroke-width="19" stroke-linecap="round" />
+
+  <!-- Translucent Apex Cap Overlay (Fold) -->
+  <circle cx="50" cy="19" r="9.5" fill="url(#aura-apex)" />
+</svg>
