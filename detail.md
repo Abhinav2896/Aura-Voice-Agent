@@ -121,7 +121,7 @@ Aura is an **AI-powered medical receptionist** designed for NHS-style GP surgeri
 | Model | Role |
 |---|---|
 | **Gemini 2.5 Flash Native Audio** (`gemini-2.5-flash-native-audio-latest`) | Real-time bidirectional voice conversation with function calling |
-| **Gemini 3.5 Flash-Lite** (`gemini-3.5-flash-lite`) | Post-call transcript extraction and structured summarization |
+| **Gemini 3.5 Flash-Lite** (`gemini-3.5-flash-lite`)<br/>*Fallback:* **Gemini 3.1 Flash-Lite** (`gemini-3.1-flash-lite`) | Post-call transcript extraction, structured summarization, and automatic rate-limit failover |
 | **Gemini Embedding 001** (`gemini-embedding-001`) | 768-dim text embeddings for knowledge base RAG |
 
 ---
@@ -393,14 +393,16 @@ knowledge_documents ──< knowledge_chunks (1:many — each document has N chu
 - **System Instruction**: Custom Aura persona — empathetic NHS medical receptionist with clinical safety protocols
 - **Why This Model**: Native audio support means the model can directly process raw microphone audio and produce spoken responses, enabling natural real-time conversation with sub-second latency. It also supports function calling during audio sessions.
 
-### Model 2: Gemini 3.5 Flash-Lite (`models/gemini-3.5-flash-lite`)
+### Model 2: Gemini 3.5 Flash-Lite (`models/gemini-3.5-flash-lite`) & Gemini 3.1 Flash-Lite (`models/gemini-3.1-flash-lite`)
 
-- **Role**: Post-call clinical scribe
+- **Role**: Post-call clinical scribe & structured entity extraction with automatic multi-model failover
+- **Primary Model**: `models/gemini-3.5-flash-lite`
+- **Failover Model**: `models/gemini-3.1-flash-lite` (automatically engaged if primary hits RPM limits or errors)
 - **Capabilities**: Transcript analysis, structured JSON extraction, clinical entity recognition
 - **Temperature**: 0.1 (high precision, low creativity)
 - **Output Format**: `application/json` (guaranteed valid JSON response)
 - **What It Extracts**: Intent classification, patient name, mobile number, symptom reason, duration, preferred date/time, urgency level, clinical safety flags, professional summary, action taken
-- **Why This Model**: Fast, cost-effective, and optimized for structured extraction tasks. Runs asynchronously after each call without blocking the voice session.
+- **Why Multi-Model**: By combining Gemini 3.5 Flash-Lite with an automatic failover to Gemini 3.1 Flash-Lite, the post-call scribe effectively doubles the available RPM quota (from 15 to 30 RPM) and prevents rate-limit drops during high-volume call surges.
 
 ### Model 3: Gemini Embedding 001 (`models/gemini-embedding-001`)
 

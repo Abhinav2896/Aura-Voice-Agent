@@ -32,37 +32,53 @@ Output ONLY raw JSON with no Markdown backticks.
 
 async def extract_call_details(transcript: str) -> CallSummaryExtract:
     """
-    Extract structured clinical-reception details from a call transcript using Gemini 3.5 Flash-Lite.
+    Extract structured clinical-reception details from a call transcript using Gemini Flash-Lite.
+    Uses Gemini 3.5 Flash-Lite as primary, and automatically fails over to Gemini 3.1 Flash-Lite
+    if the primary hits rate limits (429/RPM quota), timeouts, or errors.
     """
-    try:
-        model = genai.GenerativeModel(
-            model_name=settings.GEMINI_FLASH_LITE_MODEL,
-            system_instruction=EXTRACTION_SYSTEM_PROMPT,
-            generation_config={"temperature": 0.1, "response_mime_type": "application/json"}
-        )
+    models_to_try = [
+        settings.GEMINI_FLASH_LITE_MODEL,
+        getattr(settings, "GEMINI_FLASH_LITE_FALLBACK_MODEL", "models/gemini-3.1-flash-lite"),
+    ]
 
-        response = model.generate_content(f"Transcript:\n{transcript}")
-        raw_text = response.text.strip()
+    last_error = None
+    for model_name in models_to_try:
+        try:
+            logger.info(f"Attempting post-call extraction with model: {model_name}")
+            model = genai.GenerativeModel(
+                model_name=model_name,
+                system_instruction=EXTRACTION_SYSTEM_PROMPT,
+                generation_config={"temperature": 0.1, "response_mime_type": "application/json"}
+            )
 
-        # Clean markdown codeblocks if present
-        clean_json = re.sub(r"^```json\s*", "", raw_text, flags=re.MULTILINE)
-        clean_json = re.sub(r"\s*```$", "", clean_json, flags=re.MULTILINE).strip()
+            response = model.generate_content(f"Transcript:\n{transcript}")
+            raw_text = response.text.strip()
 
-        parsed = json.loads(clean_json)
-        # Validate through Pydantic
-        extracted = CallSummaryExtract(**parsed)
-        logger.info(f"Extraction succeeded: Intent={extracted.intent}, Urgency={extracted.urgency}")
-        return extracted
-    except Exception as e:
-        logger.error(f"Error in Gemini 3.5 Flash-Lite extraction: {e}", exc_info=True)
-        # Safe fallback
-        return CallSummaryExtract(
-            intent="appointment_request",
-            reason="Reception consultation request",
-            duration="Recent",
-            preferred_time="Morning",
-            urgency="routine",
-            requires_human_review=True,
-            summary="Patient requested general medical assistance via Aura voice receptionist.",
-            action_taken="Request logged and routed to clinical triage queue."
-        )
+            # Clean markdown codeblocks if present
+            clean_json = re.sub(r"^```json\s*", "", raw_text, flags=re.MULTILINE)
+            clean_json = re.sub(r"\s*```$", "", clean_json, flags=re.MULTILINE).strip()
+
+            parsed = json.loads(clean_json)
+            # Validate through Pydantic
+            extracted = CallSummaryExtract(**parsed)
+            logger.info(f"Extraction succeeded using {model_name}: Intent={extracted.intent}, Urgency={extracted.urgency}")
+            return extracted
+        except Exception as e:
+            last_error = e
+            logger.warning(
+                f"Extraction with {model_name} failed (error or RPM limit reached): {e}. "
+                f"Falling back to next available model..."
+            )
+
+    logger.error(f"All extraction models failed. Last error: {last_error}", exc_info=True)
+    # Safe fallback if both models fail
+    return CallSummaryExtract(
+        intent="appointment_request",
+        reason="Reception consultation request",
+        duration="Recent",
+        preferred_time="Morning",
+        urgency="routine",
+        requires_human_review=True,
+        summary="Patient requested general medical assistance via Aura voice receptionist.",
+        action_taken="Request logged and routed to clinical triage queue."
+    )
