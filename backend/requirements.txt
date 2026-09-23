@@ -1,0 +1,18 @@
+# Aura backend runtime dependencies
+# Versions pinned to what the project was developed/verified against.
+#
+# Security note (pip-audit, reviewed 2026-09-21):
+#  - pydantic-settings bumped 2.14.0 -> 2.14.2 to fix CVE-2026-58203 (patch, verified compatible).
+#  - protobuf 4.25.9 has PYSEC-2026-1805; the fix is protobuf>=5.29.6, but
+#    google-ai-generativelanguage 0.6.6 (pulled in by google-generativeai 0.7.2)
+#    requires protobuf<5.0.0. Cannot upgrade without replacing the Gemini SDK — deferred.
+#  - starlette 0.38.6 has several advisories fixed in >=0.40.0, but fastapi 0.115.0
+#    pins starlette<0.39.0. Fixing requires a coordinated FastAPI upgrade — deferred.
+#    See docs/security/doc-environment-and-secrets.md (Dependency posture).
+fastapi==0.115.0
+uvicorn[standard]==0.30.0
+pydantic==2.13.5
+pydantic-settings==2.14.2
+supabase==2.31.0
+google-generativeai==0.7.2
+websockets==15.0.1
