@@ -101,14 +101,21 @@ app = FastAPI(
 )
 
 # Enable CORS for Next.js frontend.
-# Note: a wildcard "*" origin is incompatible with allow_credentials=True (browsers
-# reject it), so we use the explicit origin allowlist from configuration instead.
+# If "*" is in CORS_ORIGINS, use allow_origin_regex=".*" to allow any origin
+# while preserving allow_credentials=True (browsers reject Access-Control-Allow-Origin: * with credentials).
+cors_kwargs: Dict[str, Any] = {
+    "allow_credentials": True,
+    "allow_headers": ["*"],
+    "allow_methods": ["*"],
+}
+if "*" in settings.cors_origins_list:
+    cors_kwargs["allow_origin_regex"] = ".*"
+else:
+    cors_kwargs["allow_origins"] = settings.cors_origins_list
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins_list,
-    allow_credentials=True,
-    allow_headers=["*"],
-    allow_methods=["*"],
+    **cors_kwargs
 )
 
 # ============================================================================

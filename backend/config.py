@@ -3,13 +3,13 @@ from typing import List
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
-    GEMINI_API_KEY: str
-    SUPABASE_URL: str
-    SUPABASE_SERVICE_ROLE_KEY: str
+    GEMINI_API_KEY: str = ""
+    SUPABASE_URL: str = ""
+    SUPABASE_SERVICE_ROLE_KEY: str = ""
     SUPABASE_ANON_KEY: str = ""
     ENVIRONMENT: str = "development"
     PORT: int = 8000
-    CORS_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
+    CORS_ORIGINS: str = "*"
 
     # Shared HMAC secret used to verify the admin session token minted by the
     # Next.js frontend (frontend/src/lib/adminAuth.ts). MUST match the frontend's
