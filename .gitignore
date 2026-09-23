@@ -1,0 +1,212 @@
+# ==============================================================================
+# Aura AI Voice Agent — Comprehensive Production .gitignore
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Environment Variables & Secrets (CRITICAL: NEVER COMMIT)
+# ------------------------------------------------------------------------------
+.env
+.env*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+*.env.local
+
+# Preserved templates and examples
+!.env.example
+!.env*.example
+!.env.template
+!.env*.template
+!.env.sample
+!.env*.sample
+
+# Certificates, Keys & Credentials
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+*.p12
+*.keystore
+*.jks
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+credentials.json
+service_account*.json
+serviceAccountKey*.json
+client_secret*.json
+google-credentials*.json
+
+# ------------------------------------------------------------------------------
+# 2. Node.js & Frontend (Next.js / React)
+# ------------------------------------------------------------------------------
+node_modules/
+.next/
+out/
+build/
+dist/
+.turbo/
+.vercel/
+.swc/
+.cache/
+.parcel-cache/
+storybook-static/
+
+# TypeScript & Linter
+*.tsbuildinfo
+next-env.d.ts
+
+# Package Managers
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+.pnpm-store/
+package-lock.json.bak
+
+# ------------------------------------------------------------------------------
+# 3. Python & Backend (FastAPI / Uvicorn)
+# ------------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.so
+.Python
+
+# Distribution / Packaging
+.eggs/
+*.egg-info/
+*.egg
+develop-eggs/
+dist/
+eggs/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+.installed.cfg
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Testing, Linting & Coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+coverage/
+.nyc_output/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# ------------------------------------------------------------------------------
+# 4. Databases & Local Storage
+# ------------------------------------------------------------------------------
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+supabase/.temp/
+supabase/.branches/
+
+# ------------------------------------------------------------------------------
+# 5. Logs & Temporary Files
+# ------------------------------------------------------------------------------
+*.log
+*.log.*
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+aura_debug.log
+.tempmediaStorage/
+temp/
+tmp/
+.temp/
+
+# ------------------------------------------------------------------------------
+# 6. IDEs, Editors & AI Tooling
+# ------------------------------------------------------------------------------
+.claude/
+.cursor/
+.agents/
+.windsurf/
+.gemini/
+.copilot/
+.history/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swo
+*.swp
+*.bak
+*.tmp
+*.sublime-workspace
+*.sublime-project
+*.code-workspace
+
+# VS Code (preserve shared team settings if needed)
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# ------------------------------------------------------------------------------
+# 7. OS-Specific Files
+# ------------------------------------------------------------------------------
+# macOS
+.DS_Store
+.DS_Store?
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.directory
+.fuse_hidden*
+.nfs*
