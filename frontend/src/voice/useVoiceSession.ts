@@ -116,11 +116,33 @@ export function useVoiceSession(): UseVoiceSessionReturn {
     provider.onTranscript = (entry) => {
       setTranscript((prev) => [...prev, entry]);
 
+      // If Aura's response includes a reference code (e.g. #APT-XXXX or #RX-XXXX),
+      // transition the live card out of 'collecting' immediately to 'submitted'.
+      if (entry.role === 'assistant') {
+        const refMatch = entry.text.match(/#(?:APT|RX)-[A-Z0-9]+/i);
+        if (refMatch) {
+          const detectedRef = refMatch[0].toUpperCase();
+          setPatientRequest((prev) => {
+            if (prev.stage === 'collecting' || prev.stage === 'idle') {
+              return {
+                ...prev,
+                stage: 'submitted',
+                referenceId: detectedRef,
+                status: 'Pending Review',
+                nextAction: 'Submitted to the practice clinical triage team for review',
+                submittedAt: 'Just now',
+              };
+            }
+            return prev;
+          });
+        }
+        return;
+      }
+
       // Show a lightweight "collecting" hint while the patient is describing what
       // they need. This only drives the interim UI state — it deliberately does
       // NOT fabricate reason/medication/date values. The real, authoritative
       // details come from the tool round-trip (onToolResult) once submitted.
-      if (entry.role !== 'user') return;
       const text = entry.text.toLowerCase();
 
       const detect = (): { intent: string; type: string } | null => {

@@ -489,6 +489,16 @@ async def live_websocket_endpoint(websocket: WebSocket, token: Optional[str] = Q
                     f"and patient_phone='{p_phone}'.\n\n"
                     f"{instruction_text}"
                 )
+            else:
+                instruction_text = (
+                    f"You are speaking with a GUEST CALLER. "
+                    f"You must collect: (1) their full name, (2) their mobile contact number, (3) preferred date and time, (4) reason for appointment. "
+                    f"Once the guest caller provides these and gives ANY confirmation (such as 'yes', 'please', 'correct', 'that's right', 'book the opportunity', 'book it', 'go ahead'), "
+                    f"you MUST IMMEDIATELY invoke the `book_appointment` tool function call with their patient_name, patient_phone, preferred_date, preferred_time, and reason. "
+                    f"CRITICAL CLINICAL SAFETY MANDATE: You have NO authority or ability to record appointments or create reference codes via spoken words alone. "
+                    f"You are strictly FORBIDDEN from speaking any reference code (such as #APT-XXXXXX) or claiming the request has been recorded or submitted until the `book_appointment` tool call has executed and returned its response in this turn!\n\n"
+                    f"{instruction_text}"
+                )
 
             setup_msg = {
                 "setup": {
