@@ -83,11 +83,11 @@ export class GeminiLiveProvider implements VoiceProvider {
       const tokenData = await tokenRes.json();
       const token = tokenData.token;
 
-      // 2. Open WebSocket to FastAPI Live relay
-      const host = window.location.hostname || 'localhost';
-      const port = '8000';
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${host}:${port}/api/live/ws?token=${token}`;
+      // 2. Open WebSocket to FastAPI Live relay (derive wss:// or ws:// from FASTAPI_URL)
+      const cleanUrl = FASTAPI_URL.replace(/\/+$/, '');
+      const wsProtocol = cleanUrl.startsWith('https://') ? 'wss:' : 'ws:';
+      const wsHost = cleanUrl.replace(/^https?:\/\//, '');
+      const wsUrl = `${wsProtocol}//${wsHost}/api/live/ws?token=${token}`;
 
       this.ws = new WebSocket(wsUrl);
 

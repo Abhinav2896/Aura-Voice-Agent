@@ -52,7 +52,7 @@ body {
 .patient-page-bg {
   background-image:
     linear-gradient(135deg, rgba(204, 222, 247, 0.48) 0%, rgba(195, 215, 245, 0.42) 45%, rgba(212, 218, 252, 0.52) 100%),
-    url('/assets/aura-patient-background.png');
+    url('/assets/aura-patient-background.webp');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

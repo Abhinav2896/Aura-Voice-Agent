@@ -52,19 +52,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!mounted) return;
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          try {
-            const p = await getMyProfile();
-            if (mounted) setProfile(p);
-          } catch {
-            // Profile fetch fail
-          }
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+
+        if (currentUser) {
+          // Immediately populate preliminary profile from user_metadata so UI renders in <10ms
+          const meta = currentUser.user_metadata || {};
+          setProfile({
+            id: currentUser.id,
+            full_name: meta.full_name || '',
+            phone: meta.phone || '',
+            dob: meta.dob || '',
+            address: '',
+            nominated_pharmacy: '',
+            created_at: currentUser.created_at,
+          });
         }
       } catch (err) {
         console.error('[AuthProvider] Auth init error:', err);
       } finally {
+        // Unblock UI immediately — never block LCP waiting for backend cold-start!
         if (mounted) setIsLoading(false);
+      }
+
+      // Non-blocking background profile synchronization
+      if (mounted) {
+        fetchProfile();
       }
     }
 
@@ -74,17 +87,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!mounted) return;
       const currentUser = session?.user ?? null;
       setUser(currentUser);
+
       if (currentUser) {
-        try {
-          const p = await getMyProfile();
-          if (mounted) setProfile(p);
-        } catch {
-          // ignore
-        }
+        const meta = currentUser.user_metadata || {};
+        setProfile((prev) => prev || {
+          id: currentUser.id,
+          full_name: meta.full_name || '',
+          phone: meta.phone || '',
+          dob: meta.dob || '',
+          address: '',
+          nominated_pharmacy: '',
+          created_at: currentUser.created_at,
+        });
+        setIsLoading(false);
+        // Non-blocking background sync
+        fetchProfile();
       } else {
         setProfile(null);
+        setIsLoading(false);
       }
-      setIsLoading(false);
     });
 
     return () => {
