@@ -20,16 +20,34 @@ interface CallsTableProps {
   fullHeight?: boolean;
 }
 
+const CACHE_KEY_PREFIX = 'aura_cached_calls_';
+
+function getCachedCalls(tab: string, filter: string): Call[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = sessionStorage.getItem(`${CACHE_KEY_PREFIX}${tab}_${filter}`);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
 export function CallsTable({ fullHeight = false }: CallsTableProps) {
   const [activeTab, setActiveTab] = useState<string>('recent');
   const [callerFilter, setCallerFilter] = useState<CallerFilterType>('all');
-  const [calls, setCalls] = useState<Call[]>([]);
+  const [calls, setCalls] = useState<Call[]>(() => getCachedCalls('recent', 'all'));
   const [selectedCall, setSelectedCall] = useState<Call | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => getCachedCalls('recent', 'all').length === 0);
   const [error, setError] = useState<string | null>(null);
 
   const loadCalls = useCallback(async (tab: string, filter: CallerFilterType) => {
-    setLoading(true);
+    const cached = getCachedCalls(tab, filter);
+    if (cached.length > 0) {
+      setCalls(cached);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
     setError(null);
     try {
       const queryParams: any = {};
@@ -41,9 +59,16 @@ export function CallsTable({ fullHeight = false }: CallsTableProps) {
       }
       const data = await getCalls(queryParams);
       setCalls(data);
+      if (typeof window !== 'undefined' && Array.isArray(data)) {
+        try {
+          sessionStorage.setItem(`${CACHE_KEY_PREFIX}${tab}_${filter}`, JSON.stringify(data));
+        } catch {}
+      }
     } catch (err) {
       console.error('[CallsTable] Error loading calls:', err);
-      setError('Unable to load live practice data.');
+      if (cached.length === 0) {
+        setError('Unable to load live practice data.');
+      }
     } finally {
       setLoading(false);
     }

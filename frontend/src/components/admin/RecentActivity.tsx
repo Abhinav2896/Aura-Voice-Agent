@@ -6,20 +6,45 @@ import { Zap, ChevronRight, AlertCircle, RotateCcw } from 'lucide-react';
 import { getRecentActivity } from '@/lib/services';
 import type { ActivityItem } from '@/lib/types';
 
+const CACHE_KEY_RECENT_ACTIVITY = 'aura_cached_recent_activity';
+
+function getCachedRecentActivity(): ActivityItem[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY_RECENT_ACTIVITY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
 export function RecentActivity() {
-  const [items, setItems] = useState<ActivityItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState<ActivityItem[]>(() => getCachedRecentActivity());
+  const [loading, setLoading] = useState(() => getCachedRecentActivity().length === 0);
   const [error, setError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
-    setLoading(true);
+    const cached = getCachedRecentActivity();
+    if (cached.length > 0) {
+      setItems(cached);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
     setError(null);
     try {
       const res = await getRecentActivity();
       setItems(res);
+      if (typeof window !== 'undefined' && Array.isArray(res)) {
+        try {
+          sessionStorage.setItem(CACHE_KEY_RECENT_ACTIVITY, JSON.stringify(res));
+        } catch {}
+      }
     } catch (err) {
       console.error('[RecentActivity] Error loading activity:', err);
-      setError('Unable to load live practice data.');
+      if (cached.length === 0) {
+        setError('Unable to load live practice data.');
+      }
     } finally {
       setLoading(false);
     }

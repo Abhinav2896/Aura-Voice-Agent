@@ -12,20 +12,45 @@ import { getRequestTypes } from '@/lib/services';
 import type { RequestTypeSlice } from '@/lib/types';
 import { PieChart as PieChartIcon, ChevronDown, AlertCircle, RotateCcw } from 'lucide-react';
 
+const CACHE_KEY_REQUEST_TYPES = 'aura_cached_request_types';
+
+function getCachedRequestTypes(): RequestTypeSlice[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY_REQUEST_TYPES);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
 export function RequestTypesChart() {
-  const [data, setData] = useState<RequestTypeSlice[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<RequestTypeSlice[]>(() => getCachedRequestTypes());
+  const [loading, setLoading] = useState(() => getCachedRequestTypes().length === 0);
   const [error, setError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
-    setLoading(true);
+    const cached = getCachedRequestTypes();
+    if (cached.length > 0) {
+      setData(cached);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
     setError(null);
     try {
       const res = await getRequestTypes();
       setData(res);
+      if (typeof window !== 'undefined' && Array.isArray(res)) {
+        try {
+          sessionStorage.setItem(CACHE_KEY_REQUEST_TYPES, JSON.stringify(res));
+        } catch {}
+      }
     } catch (err) {
       console.error('[RequestTypesChart] Error loading request types:', err);
-      setError('Unable to load live practice data.');
+      if (cached.length === 0) {
+        setError('Unable to load live practice data.');
+      }
     } finally {
       setLoading(false);
     }

@@ -16,20 +16,45 @@ import { CHART_COLORS } from '@/lib/constants';
 import type { CallVolumeDay } from '@/lib/types';
 import { BarChart3, ChevronDown, AlertCircle, RotateCcw } from 'lucide-react';
 
+const CACHE_KEY_CALL_VOLUME = 'aura_cached_call_volume';
+
+function getCachedCallVolume(): CallVolumeDay[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY_CALL_VOLUME);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
 export function CallVolumeChart() {
-  const [data, setData] = useState<CallVolumeDay[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<CallVolumeDay[]>(() => getCachedCallVolume());
+  const [loading, setLoading] = useState(() => getCachedCallVolume().length === 0);
   const [error, setError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
-    setLoading(true);
+    const cached = getCachedCallVolume();
+    if (cached.length > 0) {
+      setData(cached);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
     setError(null);
     try {
       const res = await getCallVolume();
       setData(res);
+      if (typeof window !== 'undefined' && Array.isArray(res)) {
+        try {
+          sessionStorage.setItem(CACHE_KEY_CALL_VOLUME, JSON.stringify(res));
+        } catch {}
+      }
     } catch (err) {
       console.error('[CallVolumeChart] Error loading call volume:', err);
-      setError('Unable to load live practice data.');
+      if (cached.length === 0) {
+        setError('Unable to load live practice data.');
+      }
     } finally {
       setLoading(false);
     }

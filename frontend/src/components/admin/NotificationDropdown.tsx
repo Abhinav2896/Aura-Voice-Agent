@@ -69,20 +69,38 @@ function getStatusBadgeClass(status: string, isUrgent?: boolean) {
   }
 }
 
+const CACHE_KEY_NOTIFICATIONS = 'aura_cached_notifications';
+
+function getCachedNotifications(): NotificationItem[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY_NOTIFICATIONS);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
 export function NotificationDropdown() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<NotificationCategory>('all');
-  const [items, setItems] = useState<NotificationItem[]>([]);
+  const [items, setItems] = useState<NotificationItem[]>(() => getCachedNotifications());
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(() => getCachedNotifications().length === 0);
   const [error, setError] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Fetch live notifications from Appointments, Prescriptions, and Escalations
   const fetchNotifications = useCallback(async () => {
-    setLoading(true);
+    const cached = getCachedNotifications();
+    if (cached.length > 0) {
+      setItems(cached);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
     setError(null);
     try {
       const [aptRes, rxRes, escRes] = await Promise.allSettled([
@@ -158,9 +176,16 @@ export function NotificationDropdown() {
       });
 
       setItems(list);
+      if (typeof window !== 'undefined' && Array.isArray(list)) {
+        try {
+          sessionStorage.setItem(CACHE_KEY_NOTIFICATIONS, JSON.stringify(list));
+        } catch {}
+      }
     } catch (err) {
       console.error('[NotificationDropdown] Failed to fetch notifications:', err);
-      setError('Could not load recent notifications');
+      if (cached.length === 0) {
+        setError('Could not load recent notifications');
+      }
     } finally {
       setLoading(false);
     }

@@ -79,6 +79,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (mounted) {
         fetchProfile();
       }
+
+      // Pre-warm backend container (Render spins down after 15 min of inactivity)
+      if (typeof window !== 'undefined') {
+        const fastApiUrl = process.env.NEXT_PUBLIC_FASTAPI_URL || 'https://aura-voice-agent-4.onrender.com';
+        fetch(`${fastApiUrl}/api/health`, { cache: 'no-store' }).catch(() => {});
+      }
     }
 
     initAuth();
